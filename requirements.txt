@@ -13,4 +13,5 @@ duckduckgo-search==3.5.0
 flask_sqlalchemy
 urllib3  
 Werkzeug 
+chandini
 
