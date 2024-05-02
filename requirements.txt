@@ -10,7 +10,7 @@ nltk==3.7
 scikit-learn
 openpyxl
 duckduckgo-search==3.5.0
-SQLAlchemy
+flask_sqlalchemy
 urllib3  
 Werkzeug 
 
