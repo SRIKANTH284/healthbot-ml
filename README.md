@@ -13,6 +13,7 @@ HealthBotML is an intelligent healthcare companion powered by machine learning (
 
 - **Python Flask**: Utilizing Flask for the backend, ensuring a lightweight and scalable web application.
 - **Jinja2 Templating**: Employing Jinja2 for efficient HTML templating, enhancing the user interface.
+- **HTML, CSS, JavaScript**: Enhancing the front-end user experience with responsive design and interactive elements.
 - **Machine Learning**: Leveraging ML algorithms to provide personalized health insights and recommendations.
 
 ### How to Use:
