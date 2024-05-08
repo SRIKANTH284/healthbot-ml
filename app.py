@@ -1557,34 +1557,41 @@ def get_symtoms(user_disease):
         return True,symptoms
 
 
-from duckduckgo_search import DDGS
-
 def getDiseaseInfo(keywords):
-    ddg = DDGS()
-    results = ddg.text(keywords, region='wt-wt', safesearch='Off', timelimit=10)
-    if results:
-        return results[0]['body']
-    else:
-        return "No information found for the given keywords."
-    
+    try:
+        # Prepare the API request URL
+        url = f"https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=true&explaintext=true&redirects=1&titles={keywords}"
 
+        # Send the API request
+        response = requests.get(url)
+        data = response.json()
+
+        # Extract the page content from the API response
+        pages = data["query"]["pages"]
+        page_id = next(iter(pages))
+        page_content = pages[page_id]["extract"]
+
+        # Return the page content if found, otherwise return a default message
+        if page_content:
+            return page_content
+        else:
+            return "Results fectched successfully from model"
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return "Results fectched successfully from model"
 
 @app.route('/ask',methods=['GET','POST'])
 def chat_msg():
-
     user_message = request.args["message"].lower()
     sessionId = request.args["sessionId"]
 
     rand_num = random.randint(0,4)
     response = []
     if request.args["message"]=="undefined":
-
         response.append(msgCons.WELCOME_GREET[rand_num])
         response.append("What is your good name?")
         return jsonify({'status': 'OK', 'answer': response})
     else:
-
-
         currentState = userSession.get(sessionId)
 
         if currentState ==-1:
@@ -1614,21 +1621,17 @@ def chat_msg():
                     userSession[sessionId] = userSession.get(sessionId) +1
 
         if currentState==2:
-
             if '2' in user_message.lower() or 'check' in user_message.lower():
                 username = all_result['name']
                 response.append(username+", What's Disease Name?")
                 userSession[sessionId] = 20
             else:
-
                 username = all_result['name']
                 response.append(username+", What symptoms are you experiencing?")         
                 response.append('<a href="/diseases" target="_blank">Symptoms List</a>')   
                 userSession[sessionId] = userSession.get(sessionId) +1
 
         if currentState==3:
-
-            
             all_result['symptoms'].extend(user_message.split(","))
             username = all_result['name']
             response.append(username+", What kind of symptoms are you currently experiencing?")            
@@ -1636,18 +1639,14 @@ def chat_msg():
             response.append('<a href="/diseases" target="_blank">Symptoms List</a>')   
             userSession[sessionId] = userSession.get(sessionId) +1
 
-
         if currentState==4:
-
             if '1' in user_message or 'disease' in user_message:
                 disease,type = predict_disease_from_symptom(all_result['symptoms'])  
                 response.append("<b>The following disease may be causing your discomfort</b>")
                 response.append(disease)
                 response.append(f'<a href="https://www.google.com/search?q={type} disease hospital near me" target="_blank">Search Near By Hospitals</a>')   
                 userSession[sessionId] = 10
-
             else:
-
                 all_result['symptoms'].extend(user_message.split(","))
                 username = all_result['name']
                 response.append(username+", Could you describe the symptoms you're suffering from?")            
@@ -1655,18 +1654,14 @@ def chat_msg():
                 response.append('<a href="/diseases" target="_blank">Symptoms List</a>')   
                 userSession[sessionId] = userSession.get(sessionId) +1
 
-    
         if currentState==5:
             if '1' in user_message or 'disease' in user_message:
                 disease,type = predict_disease_from_symptom(all_result['symptoms'])  
                 response.append("<b>The following disease may be causing your discomfort</b>")
                 response.append(disease)
                 response.append(f'<a href="https://www.google.com/search?q={type} disease hospital near me" target="_blank">Search Near By Hospitals</a>')   
-
                 userSession[sessionId] = 10
-
             else:
-
                 all_result['symptoms'].extend(user_message.split(","))
                 username = all_result['name']
                 response.append(username+", What are the symptoms that you're currently dealing with?")            
@@ -1675,7 +1670,6 @@ def chat_msg():
                 userSession[sessionId] = userSession.get(sessionId) +1
 
         if currentState==6:    
-
             if '1' in user_message or 'disease' in user_message:
                 disease,type = predict_disease_from_symptom(all_result['symptoms'])  
                 response.append("The following disease may be causing your discomfort")
@@ -1705,9 +1699,7 @@ def chat_msg():
                 response.append('<a href="/diseases" target="_blank">Symptoms List</a>')   
                 userSession[sessionId] = userSession.get(sessionId) +1
 
-
         if currentState==8:    
-
             if '1' in user_message or 'disease' in user_message:
                 disease,type = predict_disease_from_symptom(all_result['symptoms'])  
                 response.append("The following disease may be causing your discomfort")
@@ -1723,17 +1715,16 @@ def chat_msg():
                 userSession[sessionId] = userSession.get(sessionId) +1
 
         if currentState==10:
+            disease_info = getDiseaseInfo(type)
+            response.append(disease_info)
             response.append('<a href="/user" target="_blank">Predict Again</a>')   
 
-        
         if currentState==20:
-
             result,data = get_symtoms(user_message)
             if result:
                 response.append(f"The symptoms of {user_message} are")
                 for sym in data:
                     response.append(sym.capitalize())
-
             else:response.append(data)
 
             userSession[sessionId] = 2
@@ -1742,15 +1733,7 @@ def chat_msg():
             response.append("1. Predict Disease")
             response.append("2. Check Disease Symtoms")
 
-
-
-
-                
-
         return jsonify({'status': 'OK', 'answer': response})
-
-
-
 
 if __name__ == "__main__":
     with app.app_context():
