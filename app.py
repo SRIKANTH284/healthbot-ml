@@ -1557,11 +1557,16 @@ def get_symtoms(user_disease):
         return True,symptoms
 
 
-from duckduckgo_search import ddg
+from duckduckgo_search import DDGS
 
 def getDiseaseInfo(keywords):
-    results = ddg(keywords, region='wt-wt', safesearch='Off', time='y')
-    return results[0]['body']
+    ddg = DDGS()
+    results = ddg.text(keywords, region='wt-wt', safesearch='Off', timelimit=10)
+    if results:
+        return results[0]['body']
+    else:
+        return "No information found for the given keywords."
+    
 
 
 @app.route('/ask',methods=['GET','POST'])
